@@ -1,0 +1,29 @@
+
+Q: 
+a gamer wanna manage his video game collection
+
+each game have:
+Title
+Genre
+Release Year
+Hours Played
+
+prog functions:
+Add Game
+Show Games
+Find Game
+Delete Game
+Update Played Hours
+Show Total Played Hours
+Show Most Played Game
+
+
+
+class:      game                                                  
+attrib:     title, genre, Release year, hours Played, rating
+method:     __init__,__str__, play(hours)
+
+
+class:      manager     
+attrib:     [games]
+method:     add,show,find,delete,update played hours, show total played hours, show most played games

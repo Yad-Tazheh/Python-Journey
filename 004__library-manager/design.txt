@@ -1,0 +1,15 @@
+
+
+
+
+Class Book:
+attribs:  title, author, year, is_borrowed(bool)
+methods:
+
+class Member:
+attribs:    name, member_id, [borrowed_books]
+methods:  show_books()-> all borrowed books
+
+class Manager:
+attribs: [books], [members]
+methods: add_book(), show_book(), delete_book(), find_book(), register_member(), show_members(), borrow_book(), return_book(), show_borrowed_books(), 

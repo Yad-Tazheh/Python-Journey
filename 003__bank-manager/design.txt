@@ -1,0 +1,18 @@
+
+
+
+A bank management system
+
+
+
+
+
+
+
+class:      Account
+attrib:     owner, ID, balance
+methods:    __init__, __str__, 
+
+class:      AccountManager
+attrib:     acc_list
+methods:    create, delete, find, deposit, withdraw, transfer, show_all

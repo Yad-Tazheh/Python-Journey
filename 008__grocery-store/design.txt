@@ -1,0 +1,4 @@
+3 tier app:
+   front-end: html,css,js,bootstrap
+   backend: python flask server
+   db: mysql
