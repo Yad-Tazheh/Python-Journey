@@ -1,0 +1,56 @@
+class Products:
+    attribs:
+        name
+        category
+        price      > non-negative
+        quantity   > non-negative
+        product_id
+    methods:
+        __init__
+        __str__
+        increase_stock()
+        decrease_stock()
+
+class Supplier:
+    attribs:
+        name
+        supplier_id
+        products[]
+    methods:
+        add_product()
+        show_product()
+
+class InventoryManager:
+    attribs:
+        products[]
+        suppliers[]
+    methods:
+.        add_product()
+.        find_product()
+.        delete_product()
+.        update_quantity()
+.        sell_product()
+.        add_supplier()
+.        link_product_supplier()
+.        show_inventory()
+.        show_suppliers()
+        calculate_total_value()
+-----------------
+add_product(
+    "Keyboard",
+    "Electronics",
+    50,
+    20
+)
+---> Keyboard | Electronics | $50 | Stock: 20
+--------------------
+sell_product(product_id, 5)
+before: Keyboard stock: 20 / after: Keyboard stock: 15 / else: Not enough stock
+--------------------
+Keyboard
+50$ × 15
+
+Mouse
+20$ × 30
+Total inventory value: $1350
+-----------------------
