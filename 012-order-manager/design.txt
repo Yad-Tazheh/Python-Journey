@@ -1,0 +1,87 @@
+customer comes -> picks products -> makes an Order -> products goes into Order's List -> Order gets paid or canceled
+Product -> OrderItem -> Order -> Customer
+therefor OrderItem is a list of Orders
+
+Order
+       OrderItem
+                - product : 'keyboard'
+                - quantity : 3
+       OrderItem
+                - product: 'mouse'
+                - quantity: 4
+
+
+
+
+
+Customer
+   |
+   | has
+   v
+Order
+   |
+   | has
+   v
+OrderItem
+   |
+   | references
+   v
+Product
+
+class Product:
+    attribs:
+        name
+        product_id
+        price
+        stock
+
+class Customer:
+    attribs:
+        name
+        customer_id
+        order
+    methods:
+        show_order()
+
+class OrderItem:
+   attribs:
+        product
+        quantity
+   methods:
+        subtotal() --> price*quantity
+
+class Order:
+    attribs:
+        order_id
+        customer
+        items
+        status --> pending, paid, canceled
+    methods:
+        add_item()
+        remvoe_item()
+        total_price()
+        show_order()
+
+class OrderManager:
+    attribs:
+        products
+        customers
+        orders
+    methods:
+        add_product()
+        register_customer()
+        find_product()
+        find_customer()
+        create_order(customer_id)
+        add_item(order_id, product_id, quantity)
+        remove_item(order_id, product_id)
+        pay_order(order_id)
+        cancel_order(order_id)
+        show_orders()
+        show_products()
+        show_customers()
+------------------------------------ conditions
+1) if insufficient funds --> raise ValueError
+2) when paying : stat(pending) -> stat(paid)
+3) when canceling : stat(pending) -> stat(canceled) if paid before don't let canceling
+4) total_price: sums up all the OrderItems
