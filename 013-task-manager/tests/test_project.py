@@ -1,7 +1,10 @@
-from manager import User, Task, Project
+from models.user import User
+from models.task import Task
+from models.project import Project
+from storage.data_manager import DataManager
 
 
-# add_user Test
+# test No1 - add user
 def test_add_user():
     project = Project("Website", "p1")
 
@@ -16,6 +19,7 @@ def test_add_user():
     assert len(project.users) == 1
     assert project.users[0].name == "Ali"
 
+# test No2 - assign task
 def test_assign_task():
     project = Project("Website", "p1")
 
@@ -43,9 +47,8 @@ def test_assign_task():
     assert task.assigned_user == user
     assert task in user.tasks
 
-from manager import DataManager
 
-
+# test No3 - load and save in/from JSON file
 def test_save_and_load(tmp_path):
     file = tmp_path / "project.json"
 
@@ -74,10 +77,8 @@ def test_save_and_load(tmp_path):
         user.user_id
     )
 
-    # save
     manager.save(project)
 
-    # load
     loaded_project = manager.load()
 
     loaded_user = loaded_project.find_user(1)
@@ -85,7 +86,5 @@ def test_save_and_load(tmp_path):
 
     assert loaded_user.name == "Ali"
     assert loaded_task.title == "Build API"
-
-    # check relationship after loading JSON
     assert loaded_task.assigned_user == loaded_user
     assert loaded_task in loaded_user.tasks
