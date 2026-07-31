@@ -1,3 +1,4 @@
+import json
 from enum import Enum
 from uuid import uuid7
 from datetime import datetime
@@ -19,6 +20,29 @@ class User:
 
     def __str__(self):
         return f'{self.name} | {self.user_id} | {self.email} | {self.role.value}'
+
+    def to_dict(self):
+        return {
+            "name": self.name,
+            "user_id": self.user_id,
+            "email": self.email,
+            "role": self.role.value,
+            "tasks": [task.task_id for task in self.tasks]
+        }
+
+    # method belongs to the class itself not a created object
+    # means run the function on the class itself not the instances of the class
+    @classmethod
+    def from_dict(cls, data):
+        # import User.__init__ args from the json field data
+        user = cls(
+            data["name"],
+            data["user_id"],
+            data["email"]
+        )
+        # import the role as well
+        user.role = User.Roles(data["role"])
+        return user
 
 class Task:
     class Status(Enum):
@@ -57,6 +81,36 @@ class Task:
 
         )
 
+    def to_dict(self):
+        return {
+            "task_id": self.task_id,
+            "title": self.title,
+            "description": self.description,
+            "status": self.status.value,
+            "priority": self.priority.value,
+            "created_at": self.created_at.isoformat(),
+            "due_date": self.due_date,
+            "assigned_user": (
+                self.assigned_user.user_id
+                if self.assigned_user
+                else None
+            )
+        }
+
+    @classmethod
+    def from_dict(cls, data):
+        task = cls(
+            data["title"],
+            data["description"],
+            Task.Priority(data["priority"]),
+            data["due_date"]
+        )
+
+        task.task_id = data["task_id"]
+        task.status = Task.Status(data["status"])
+        task.created_at = datetime.fromisoformat(data["created_at"])
+
+        return task
 
 
 class Project:
@@ -65,6 +119,41 @@ class Project:
         self.project_id = project_id
         self.tasks = []
         self.users = []
+
+    def to_dict(self):
+        return {
+            "name": self.name,
+            "project_id": self.project_id,
+            "tasks": [task.to_dict() for task in self.tasks],
+            "users": [user.to_dict() for user in self.users]
+        }
+    @classmethod
+    def from_dict(cls, data):
+        project = cls(
+            data["name"],
+            data["project_id"]
+        )
+        for user_data in data["users"]:
+            user = User.from_dict(user_data)
+            project.add_user(user)
+
+        for task_data in data["tasks"]:
+            task = Task.from_dict(task_data)
+            project.add_task(task)
+
+        for task_data in data["tasks"]:
+            assigned_user_id = task_data["assigned_user"]
+
+            if assigned_user_id:
+                task = project.find_task(task_data["task_id"])
+                user = project.find_user(assigned_user_id)
+
+                if task and user:
+                    task.assigned_user = user
+                    user.tasks.append(task)
+
+        return project
+
 
     def add_user(self, user):
         if user is None:
@@ -142,7 +231,7 @@ class Project:
         if user is None:
             raise ValueError("User does not exist")
 
-        for task in user.tasks:
+        for task in user.tasks[:]:
             task.assigned_user = None
 
         user.tasks.clear()
@@ -198,10 +287,16 @@ class Project:
     # show how many tasks are done
     # show how many tasks are in pending mode
     def project_summary(self):
-        # also can use a list comprehension with a filter() and a lambda status in the filter
-        done_tasks = [task for task in self.tasks if task.status == Task.Status.DONE]
-        pending_tasks = [task for task in self.tasks if task.status == Task.Status.PENDING]
-        return(
+        done_tasks = sum(
+            1 for task in self.tasks
+            if task.status == Task.Status.DONE
+        )
+        pending_tasks = sum(
+            1 for task in self.tasks
+            if task.status == Task.Status.PENDING
+        )
+
+        return (
             f'project: {self.name}, '
             f'users: {len(self.users)}, '
             f'tasks: {len(self.tasks)}, '
@@ -209,11 +304,39 @@ class Project:
             f'pending: {pending_tasks}'
         )
 
+class DataManager:
+    def __init__(self, file_name):
+        self.file_name = file_name
 
+    def save(self, project):
+        with open(self.file_name, "w") as file:
+            json.dump(project.to_dict(), file, indent=4)
 
+    def load(self):
+        with open(self.file_name, "r") as file:
+            data = json.load(file)
 
+        return Project.from_dict(data)
 
+if __name__ == "__main__":
+    manager = DataManager("project.json")
+    #
+    #project = Project("Website", "p1")
+    #
+    #user = User("Ali", 1, "ali@test.com")
+    #task = Task(
+    #    "Build API",
+    #    "create backend",
+    #    Task.Priority.HIGH,
+    #    "2026-08-01"
+    #)
+    #
+    #project.add_user(user)
+    #project.add_task(task)
+    #
+    #project.assign_task(task.task_id, user.user_id)
+    #
+    #manager.save(project)
+    loaded_project = manager.load()
 
-
-
-
+    loaded_project.show_tasks()
