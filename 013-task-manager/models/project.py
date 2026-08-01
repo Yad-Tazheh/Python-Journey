@@ -42,6 +42,13 @@ class Project:
 
         return project
 
+    @classmethod
+    def from_row(cls, row):
+        return cls(
+            row["name"],
+            row["project_id"]
+        )
+
 
     def add_user(self, user):
         if user is None:

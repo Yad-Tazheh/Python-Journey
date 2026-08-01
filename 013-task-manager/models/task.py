@@ -24,6 +24,7 @@ class Task:
 
         self.assigned_user = None
         self.assigned_user_id= None
+        self.project_id = None
 
         self.status = Task.Status.TODO
         if not isinstance(priority, Task.Priority):
@@ -70,6 +71,7 @@ class Task:
         task.task_id = data["task_id"]
         task.status = Task.Status(data["status"])
         task.created_at = datetime.fromisoformat(data["created_at"])
+        task.project_id = data["project_id"]
 
         return task
 
@@ -85,4 +87,5 @@ class Task:
         task.status = cls.Status(row["status"])
         task.assigned_user_id = row["assigned_user_id"]
         task.created_at = datetime.fromisoformat(row["created_at"])
+        task.project_id = row["project_id"]
         return task
