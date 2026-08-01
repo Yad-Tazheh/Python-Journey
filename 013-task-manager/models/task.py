@@ -21,7 +21,10 @@ class Task:
         self.due_date = due_date
         self.created_at = datetime.now()
         self.task_id = str(uuid7())
+
         self.assigned_user = None
+        self.assigned_user_id= None
+
         self.status = Task.Status.TODO
         if not isinstance(priority, Task.Priority):
             raise TypeError("Priority must be of type Task.Priority")
@@ -68,4 +71,18 @@ class Task:
         task.status = Task.Status(data["status"])
         task.created_at = datetime.fromisoformat(data["created_at"])
 
+        return task
+
+    @classmethod
+    def from_row(cls, row):
+        task = cls(
+            row["title"],
+            row["description"],
+            Task.Priority(row["priority"]),
+            row["due_date"]
+        )
+        task.task_id = row["task_id"]
+        task.status = cls.Status(row["status"])
+        task.assigned_user_id = row["assigned_user_id"]
+        task.created_at = datetime.fromisoformat(row["created_at"])
         return task

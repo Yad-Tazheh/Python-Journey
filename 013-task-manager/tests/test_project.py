@@ -3,7 +3,6 @@ from models.task import Task
 from models.project import Project
 from storage.data_manager import DataManager
 
-
 # test No1 - add user
 def test_add_user():
     project = Project("Website", "p1")

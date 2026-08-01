@@ -39,3 +39,13 @@ class User:
         # import the role as well
         user.role = User.Roles(data["role"])
         return user
+
+    @classmethod
+    def from_row(cls, row):
+        user = cls(
+            row["name"],
+            row["user_id"],
+            row["email"]
+        )
+        user.role = cls.Roles(row["role"])
+        return user
