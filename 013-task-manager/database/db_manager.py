@@ -8,7 +8,7 @@ from models.user import User
 class DatabaseManager:
     def __init__(self, db_name):
         self.connection = sqlite3.connect(db_name)
-        self.connection.row_factory = sqlite3.Row
+        self.connection.row_factory = sqlite3.Row # for returning select as a string not tuple
         self.cursor = self.connection.cursor()
 
         self.create_tables()
@@ -58,7 +58,7 @@ class DatabaseManager:
                     PRIMARY KEY (project_id, user_id),
                     FOREIGN KEY (project_id)
                         REFERENCES projects(project_id),
-                                FOREIGN KEY(user_id)
+                    FOREIGN KEY(user_id)
                         REFERENCES users(user_id)
             )
         """)
@@ -296,8 +296,8 @@ class DatabaseManager:
             """
             SELECT users.*
             FROM users
-                     JOIN project_users
-                          ON users.user_id = project_users.user_id
+            JOIN project_users
+            ON users.user_id = project_users.user_id
             WHERE project_users.project_id = ?
             """,
             (project_id,)
