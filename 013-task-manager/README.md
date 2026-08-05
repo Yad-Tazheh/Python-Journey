@@ -1,265 +1,160 @@
-# 📋 Task Manager
+# 📋 Task Manager (SQLAlchemy ORM Edition)
 
-A simple **Task Management System** built with **Python**, following **Object-Oriented Programming (OOP)** principles and using **SQLite** as the database.
+A Python Task Management System built with **SQLAlchemy ORM** and **PostgreSQL**.
 
-This project was created as a learning project to practice:
-
-- Object-Oriented Design
-- SQLite
-- Database Relationships
-- CRUD Operations
-- Unit Testing with pytest
+This branch is a complete migration of the original SQLite implementation to SQLAlchemy ORM, focusing on object-oriented database design, relationships, and clean architecture.
 
 ---
 
-# 🚀 Features
+## 🚀 Technologies
 
-- Create projects
-- Create users
-- Create tasks
-- Assign tasks to users
-- Assign tasks to projects
-- Add users to projects
-- Change task status
-- Delete users
-- Delete tasks
-- Retrieve all tasks of a user
-- Retrieve all tasks of a project
-- Retrieve all members of a project
-- Automatic relationship management
-- Unit tests using **pytest**
+* Python 3
+* PostgreSQL
+* SQLAlchemy 2.0 (ORM)
+* pytest
 
 ---
 
-# 📦 Project Structure
+## 📂 Project Structure
 
 ```text
-Task Manager
+TaskManager/
 │
 ├── database/
-│   └── db_manager.py
+│   ├── base.py
+│   └── database.py
 │
 ├── models/
-│   ├── user.py
+│   ├── association.py
+│   ├── project.py
 │   ├── task.py
-│   └── project.py
+│   └── user.py
 │
 ├── tests/
-│   ├── database_test.py
-│   └── ...
+│   ├── conftest.py
+│   └── database_test.py
 │
 └── main.py
 ```
 
 ---
 
-# 🧩 Domain Model
+## 🧩 Database Models
 
-```text
-Project
-│
-├── Users
-│     ├── Ali
-│     ├── Reza
-│     └── ...
-│
-└── Tasks
-      ├── Create Database
-      ├── Design Login Page
-      └── Deploy Server
-```
+### User
 
----
+Represents a system user.
 
-# 👤 User
+**Fields**
 
-Represents a member of a project.
+* user_id
+* name
+* email
+* role
 
-### Attributes
+**Relationships**
 
-- `user_id`
-- `name`
-- `email`
-- `role`
-
-Possible roles:
-
-- ADMIN
-- USER
-- MANAGER
+* One-to-Many → Tasks
+* Many-to-Many → Projects
 
 ---
 
-# ✅ Task
+### Task
 
 Represents a task inside a project.
 
-### Attributes
+**Fields**
 
-- `task_id`
-- `title`
-- `description`
-- `status`
-- `priority`
-- `assigned_user`
-- `project_id`
-- `created_at`
-- `due_date`
+* task_id
+* title
+* description
+* status
+* priority
+* created_at
+* due_date
 
-### Status
+**Relationships**
 
-- TODO
-- PENDING
-- IN_PROGRESS
-- DONE
-- CANCELED
-
-### Priority
-
-- LOW
-- MEDIUM
-- HIGH
+* Many-to-One → User
+* Many-to-One → Project
 
 ---
 
-# 📁 Project
+### Project
 
 Represents a project.
 
-### Attributes
+**Fields**
 
-- `project_id`
-- `name`
+* project_id
+* name
 
-Projects are connected to:
+**Relationships**
 
-- Multiple Users
-- Multiple Tasks
-
----
-
-# 🗄 Database Schema
-
-## users
-
-```text
-user_id (PK)
-name
-email
-role
-```
+* One-to-Many → Tasks
+* Many-to-Many → Users
 
 ---
 
-## projects
+### Association Table
 
-```text
-project_id (PK)
-name
-```
+`project_users`
 
----
-
-## tasks
-
-```text
-task_id (PK)
-title
-description
-status
-priority
-created_at
-due_date
-
-project_id (FK)
-assigned_user_id (FK)
-```
+Implements the Many-to-Many relationship between Users and Projects.
 
 ---
 
-## project_users
+## 🗃 Database Relationships
 
 ```text
-project_id (FK)
-user_id (FK)
+User
+│
+├── 1 ------ * Task
+│
+└── * ------ * Project
 
-PRIMARY KEY(project_id, user_id)
-```
 
----
-
-# 🔗 Relationships
-
-```text
 Project
-    │
-    ├──────────────┐
-    │              │
-    ▼              ▼
-  Tasks        project_users
-                    │
-                    ▼
-                  Users
-
-Task
- │
- └────────────► Assigned User
+│
+├── 1 ------ * Task
+│
+└── * ------ * User
 ```
-
-### Relationship Types
-
-- Project → Tasks (**One-to-Many**)
-- User → Tasks (**One-to-Many**)
-- Project ↔ Users (**Many-to-Many**)
 
 ---
 
-# 🧪 Testing
+## ✅ Implemented Features
 
-Run all tests:
+* SQLAlchemy ORM models
+* PostgreSQL integration
+* User CRUD
+* Task CRUD
+* Project CRUD
+* User ↔ Task relationship
+* Project ↔ Task relationship
+* Project ↔ User many-to-many relationship
+* Automated ORM relationship management
+* Unit tests with pytest
+
+---
+
+## 🧪 Running Tests
 
 ```bash
 pytest
 ```
 
-Run only database tests:
-
-```bash
-pytest tests/database_test.py
-```
-
 ---
 
-# 🛠 Technologies
+## 📌 Current Status
 
-- Python 3
-- SQLite3
-- pytest
-- Git
-- Object-Oriented Programming (OOP)
+This branch contains the SQLAlchemy ORM implementation.
 
----
+Future improvements include:
 
-# 📚 What I Learned
-
-During this project I practiced:
-
-- Object-Oriented Design
-- Class Relationships
-- Enums
-- UUIDs
-- SQLite CRUD Operations
-- Primary Keys
-- Foreign Keys
-- One-to-Many Relationships
-- Many-to-Many Relationships
-- SQL JOIN
-- Data Validation
-- Unit Testing with pytest
-- Git Version Control
-
----
-
-# 📄 License
-
-This project is created for learning purposes.
+* Repository Pattern
+* Cascade behaviors
+* Lazy vs Eager Loading
+* Alembic Migrations
+* Service Layer
+* Generic Repository
