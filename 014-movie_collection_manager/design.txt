@@ -1,0 +1,5 @@
+so from now we will be engineering this project in a more structured way.
+we will start step by step and write test for each model via pytest
+
+
+1. we will create a testing framework for our movie collection manager project using pytest.
