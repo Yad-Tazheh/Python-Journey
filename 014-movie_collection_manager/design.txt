@@ -3,3 +3,9 @@ we will start step by step and write test for each model via pytest
 
 
 1. we will create a testing framework for our movie collection manager project using pytest.
+1.1: we created a base for genre.py without relationship in order for Base.metadata.create_all() to work properly. we will add relationship later on.
+1.2: we created a base for movie.py without relationship in order for Base.metadata.create_all() to work properly. we will add relationship later on.
+1.3: now we create a relation btw genre and movie. we will add a foreign key in movie.py to reference genre.py. many-to-many relationship will be implemented.
+1.3.1: we will create a new table called movie_genre to establish the many-to-many relationship between movies and genres. This table will have two foreign keys: one referencing the movies table and the other referencing the genres table.
+1.4: we create actor.py with a relation btw movies and actors. We will add a foreign key in movie.py to reference actor.py. Many-to-many relationship will be implemented.
+1.4.1: we will create a new table called movie_actor to establish the many-to-many relationship between movies and actors. This table will have two foreign keys: one referencing the movies
