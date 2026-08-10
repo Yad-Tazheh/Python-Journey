@@ -43,6 +43,8 @@ class Movie(Base):
         back_populates="movies",
     )
 
+    # cascade relates operations on movies to reviews
     reviews: Mapped[list["Review"]] = relationship(
         back_populates="movie",
+        cascade="all, delete-orphan",
     )
