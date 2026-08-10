@@ -1,6 +1,6 @@
 from models import Movie
 from repositories.movie_repository import MovieRepository
-
+from exceptions.movie_exceptions import MovieAlreadyExistsException, MovieNotFoundException
 
 class MovieService:
     def __init__(self, movie_repository: MovieRepository) -> None:
@@ -9,7 +9,7 @@ class MovieService:
     def get_by_id(self, movie_id: int) -> Movie:
         existing_movie = self.movie_repository.get_by_id(movie_id)
         if not existing_movie:
-            raise Exception('Movie not found')
+            raise MovieNotFoundException('Movie not found')
         return existing_movie
 
     def get_all(self) -> list[Movie]:
@@ -18,7 +18,7 @@ class MovieService:
     def get_by_title(self, title: str) -> Movie:
         existing_movie = self.movie_repository.get_by_title(title)
         if not existing_movie:
-            raise Exception('Movie not found')
+            raise MovieNotFoundException('Movie not found')
         return existing_movie
 
 
@@ -26,7 +26,7 @@ class MovieService:
         existing_movie = self.movie_repository.get_by_title(movie.title)
 
         if existing_movie:
-            raise Exception('Movie already exists')
+            raise MovieAlreadyExistsException('Movie already exists')
 
         return self.movie_repository.create(movie)
 
@@ -34,7 +34,7 @@ class MovieService:
         existing_movie = self.movie_repository.get_by_id(movie_id)
 
         if not existing_movie:
-            raise Exception('Movie not found')
+            raise MovieNotFoundException('Movie not found')
 
         existing_movie.title = updated_movie.title
         existing_movie.description = updated_movie.description
@@ -46,7 +46,7 @@ class MovieService:
         existing_movie = self.movie_repository.get_by_id(movie_id)
 
         if not existing_movie:
-            raise Exception('Movie not found')
+            raise MovieNotFoundException('Movie not found')
         self.movie_repository.delete(movie_id)
-        
+
         return existing_movie

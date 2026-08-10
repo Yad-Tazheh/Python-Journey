@@ -1,4 +1,6 @@
 import pytest
+
+from exceptions.movie_exceptions import MovieNotFoundException, MovieAlreadyExistsException
 from models import Movie, movie
 from services.movie_service import MovieService
 from repositories.movie_repository import MovieRepository
@@ -39,7 +41,7 @@ def test_service_movie_duplicate(test_session):
 
     movie_service.create(movie1)
 
-    with pytest.raises(Exception):
+    with pytest.raises(MovieAlreadyExistsException):
         movie_service.create(movie2)
 
 
@@ -60,7 +62,7 @@ def test_service_get_movie_by_id_not_found(test_session):
     repo = MovieRepository(test_session)
     movie_service = MovieService(repo)
 
-    with pytest.raises(Exception):
+    with pytest.raises(MovieNotFoundException):
         movie_service.get_by_id(8888)
 
 
@@ -85,7 +87,7 @@ def test_service_get_by_title_not_found(test_session):
     repo = MovieRepository(test_session)
     movie_service = MovieService(repo)
 
-    with pytest.raises(Exception):
+    with pytest.raises(MovieNotFoundException):
         movie_service.get_by_title("a test title")
 
 
@@ -149,7 +151,7 @@ def test_service_update_fail(test_session):
         release_date="2023-01-01"
     )
 
-    with pytest.raises(Exception):
+    with pytest.raises(MovieNotFoundException):
         movie_service.update(8888, updated_movie)
 
 def test_service_delete_successfully(test_session):
@@ -173,6 +175,6 @@ def test_service_delete_fail(test_session):
     repo = MovieRepository(test_session)
     movie_service = MovieService(repo)
 
-    with pytest.raises(Exception):
+    with pytest.raises(MovieNotFoundException):
         movie_service.delete(8888)
 
