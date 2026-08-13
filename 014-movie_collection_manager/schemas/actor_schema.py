@@ -13,6 +13,8 @@ class ActorResponse(BaseModel):
     actor_id: int
     name: str
 
+class ActorUpdate(BaseModel):
+    name: str
 
 class ActorWithMovieResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)

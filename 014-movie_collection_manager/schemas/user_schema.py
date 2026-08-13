@@ -13,6 +13,11 @@ class UserResponse(BaseModel):
     user_id: int
     username: str
 
+
+class UserUpdate(BaseModel):
+    username: str
+
+
 class UserWithReviewResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 

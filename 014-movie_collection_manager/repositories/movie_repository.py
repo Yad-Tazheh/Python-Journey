@@ -1,8 +1,7 @@
-from ast import List
 
 from sqlalchemy.orm import Session
 
-from models import Movie, movie
+from models import Movie
 
 
 class MovieRepository:
@@ -10,7 +9,7 @@ class MovieRepository:
     def __init__(self, db: Session):
         self.db = db
 
-    def get_all(self) -> List[Movie]:
+    def get_all(self) -> list[Movie]:
         return self.db.query(Movie).all()
 
     def get_by_id(self, movie_id: int) -> Movie | None:
@@ -32,8 +31,8 @@ class MovieRepository:
         return movie
 
     def delete(self, movie_id: int) -> Movie | None:
-        movie = self.get_by_id(movie_id)
-        if movie:
-            self.db.delete(movie)
+        existing_movie = self.get_by_id(movie_id)
+        if existing_movie:
+            self.db.delete(existing_movie)
             self.db.commit()
-        return movie
+        return existing_movie

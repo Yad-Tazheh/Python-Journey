@@ -12,3 +12,19 @@ we will start step by step and write test for each model via pytest
 1.4.2: we defined the review to user and movies relationship
 1.5: now we will create a movie repository and related tests to it
 1.6: we create a service layer for movie repository and related tests to it
+
+
+
+
+
+
+client --> Router(fastAPI) --> schema(pydantic) --> service --> Repository --> SQLAlchemy Model --> DB
+
+schema is the guard dog for API input(title has to be a str, but dont know that the movie exists or not)
+service is the business logic (movie with repeated title cant be saved) its rules for the app.
+
+schema validates if the request is healthy or not
+service validates if the request is allowed in the programs logic or not
+service : 1.duplicate check 2.business rules 3.exceptions
+
+repo: service must not know how sqlalchemy works means : repo.get_by_title("x") --> session.query(Movie).filter(Movie.title=="x").first()

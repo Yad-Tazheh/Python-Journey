@@ -12,6 +12,9 @@ class GenreResponse(BaseModel):
     genre_id: int
     name: str
 
+class GenreUpdate(BaseModel):
+    name: str
+
 class GenreWithMovieResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
