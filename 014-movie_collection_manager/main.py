@@ -10,15 +10,15 @@ from routers.review_router import router as review_router
 
 from database.database import create_database
 
-from exceptions.exception_handlers import movie_not_found_handler
+from exceptions.exception_handlers import movie_not_found_handler, genre_already_associated_handler
 from exceptions.exception_handlers import genre_not_found_handler
-from exceptions.exception_handlers import actor_not_found_handler
+from exceptions.exception_handlers import actor_not_found_handler, actor_already_associated_handler
 from exceptions.exception_handlers import user_not_found_handler
 from exceptions.exception_handlers import review_not_found_handler
 
 from exceptions.movie_exceptions import MovieNotFoundException
-from exceptions.actor_exceptions import ActorNotFoundException
-from exceptions.genre_exceptions import GenreNotFoundException
+from exceptions.actor_exceptions import ActorNotFoundException, ActorAlreadyAssociatedException
+from exceptions.genre_exceptions import GenreNotFoundException, GenreAlreadyAssociatedException
 from exceptions.user_exceptions import UserNotFoundException
 from exceptions.review_exceptions import ReviewNotFoundException
 
@@ -64,6 +64,16 @@ app.add_exception_handler(
 app.add_exception_handler(
     ReviewNotFoundException,
     review_not_found_handler
+)
+
+app.add_exception_handler(
+    ActorAlreadyAssociatedException,
+    actor_already_associated_handler
+)
+
+app.add_exception_handler(
+    GenreAlreadyAssociatedException,
+    genre_already_associated_handler
 )
 
 app.include_router(movie_router)

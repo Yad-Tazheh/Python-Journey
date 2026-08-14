@@ -2,6 +2,8 @@ from fastapi import APIRouter, Depends
 
 from dependencies import get_movie_service
 from schemas.movie_schema import MovieResponse, MovieCreate, MovieUpdate
+from schemas.genre_schema import GenreResponse
+from schemas.actor_schema import ActorResponse
 from services.movie_service import MovieService
 from models.movie import Movie
 
@@ -32,6 +34,39 @@ def create_movie(
         release_date=movie.release_date
     )
     return movie_service.create(new_movie)
+
+
+@router.post("/{movie_id}/actors/{actor_id}", response_model=MovieResponse)
+def add_actor_to_movie(
+        movie_id: int,
+        actor_id: int,
+        movie_service: MovieService = Depends(get_movie_service),
+):
+    return movie_service.add_actor(movie_id, actor_id)
+
+@router.get("/{movie_id}/actors", response_model=list[ActorResponse])
+def get_movie_actors(
+        movie_id: int,
+        movie_service: MovieService = Depends(get_movie_service)
+):
+    return movie_service.get_actors(movie_id)
+
+
+@router.post("/{movie_id}/genres/{genre_id}", response_model=MovieResponse)
+def add_genre_to_movie(
+        movie_id: int,
+        genre_id: int,
+        movie_service: MovieService = Depends(get_movie_service)
+):
+    return movie_service.add_genre(movie_id, genre_id)
+
+
+@router.get("/{movie_id}/genres", response_model=list[GenreResponse])
+def get_movie_genres(
+        movie_id: int,
+        movie_service: MovieService = Depends(get_movie_service)
+):
+    return movie_service.get_genres(movie_id)
 
 
 @router.get("/{movie_id}", response_model=MovieResponse)
@@ -69,3 +104,12 @@ def get_movie_by_title(
         movie_service: MovieService = Depends(get_movie_service)
 ):
     return movie_service.get_by_title(title)
+
+
+
+
+
+
+
+
+

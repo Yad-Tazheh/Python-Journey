@@ -3,7 +3,7 @@ from fastapi import Depends
 from sqlalchemy.orm import Session
 
 from database.database import SessionLocal
-from repositories import review_repository, movie_repository, user_repository
+from repositories import review_repository, movie_repository, user_repository, genre_repository
 from repositories.actor_repository import ActorRepository
 from repositories.genre_repository import GenreRepository
 from repositories.user_repository import UserRepository
@@ -32,9 +32,15 @@ def get_session() -> Generator[Session, None, None]:
 def get_movie_service(
         db: Session = Depends(get_session)
 ):
-    repository = MovieRepository(db)
+    movie_repository = MovieRepository(db)
+    actor_repository = ActorRepository(db)
+    genre_repository = GenreRepository(db)
 
-    return MovieService(repository)
+    return MovieService(
+        movie_repository=movie_repository,
+        actor_repository=actor_repository,
+        genre_repository=genre_repository
+    )
 
 def get_actor_service(
         db: Session = Depends(get_session)

@@ -5,3 +5,6 @@ class GenreAlreadyExistsException(Exception):
 
 class GenreNotFoundException(Exception):
     pass
+
+class GenreAlreadyAssociatedException(Exception):
+    pass

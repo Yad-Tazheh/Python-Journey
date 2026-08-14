@@ -4,3 +4,6 @@ class ActorAlreadyExistsException(Exception):
 
 class ActorNotFoundException(Exception):
     pass
+
+class ActorAlreadyAssociatedException(Exception):
+    pass
