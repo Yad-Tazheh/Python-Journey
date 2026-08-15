@@ -1,5 +1,3 @@
-from urllib import response
-
 
 def test_get_all_movies(client):
     response = client.get("/movies/")
@@ -426,3 +424,54 @@ def test_add_genre_to_movie_already_associated(client):
     assert response.json()["detail"] == (
         "Genre already associated with the movie"
     )
+
+
+def test_get_movie_by_id(client, test_movie):
+    response = client.get(f"/movies/{test_movie.movie_id}")
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert data["movie_id"] == test_movie.movie_id
+    assert data["title"] == "Test Movie"
+    assert data["description"] == "A test movie"
+    assert data["release_date"] == "2023-01-01"
+
+
+def test_get_movie_by_id_not_found(client):
+    response = client.get("/movies/9999")
+
+    assert response.status_code == 404
+    assert response.json()["detail"] == "Movie not found"
+
+
+def test_create_movie_duplicate_title(client):
+    movie_data = {
+        "title": "Inception",
+        "description": "A movie",
+        "release_date": "2010-07-16",
+    }
+
+    response = client.post("/movies/", json=movie_data)
+
+    assert response.status_code == 200
+
+    response = client.post("/movies/", json=movie_data)
+
+    assert response.status_code == 409
+    assert response.json()["detail"] == "Movie already exists"
+
+
+def test_update_movie_not_found(client):
+    response = client.put(
+        "/movies/9999",
+        json={
+            "title": "New title",
+            "description": "New description",
+            "release_date": "2024-01-01",
+        },
+    )
+
+    assert response.status_code == 404
+    assert response.json()["detail"] == "Movie not found"

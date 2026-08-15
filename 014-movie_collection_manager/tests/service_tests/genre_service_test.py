@@ -1,8 +1,8 @@
 from models import Genre, Movie
 
 from exceptions.genre_exceptions import (
-    GenreAlreadyAssociatedException,
     GenreAlreadyExistsException,
+    GenreAlreadyAssociatedException,
     GenreNotFoundException,
 )
 from exceptions.movie_exceptions import MovieNotFoundException
@@ -24,20 +24,20 @@ class GenreService:
         return self.genre_repository.get_all()
 
     def get_by_id(self, genre_id: int) -> Genre:
-        genre = self.genre_repository.get_by_id(genre_id)
+        existing_genre = self.genre_repository.get_by_id(genre_id)
 
-        if not genre:
+        if not existing_genre:
             raise GenreNotFoundException("Genre not found")
 
-        return genre
+        return existing_genre
 
     def get_by_name(self, genre_name: str) -> Genre:
-        genre = self.genre_repository.get_by_name(genre_name)
+        existing_genre = self.genre_repository.get_by_name(genre_name)
 
-        if not genre:
+        if not existing_genre:
             raise GenreNotFoundException("Genre not found")
 
-        return genre
+        return existing_genre
 
     def create(self, genre: Genre) -> Genre:
         existing_genre = self.genre_repository.get_by_name(genre.name)
@@ -47,58 +47,50 @@ class GenreService:
 
         return self.genre_repository.create(genre)
 
-    def update(
-        self,
-        genre_id: int,
-        updated_genre: Genre,
-    ) -> Genre:
-        genre = self.genre_repository.get_by_id(genre_id)
+    def update(self, genre_id: int, updated_genre: Genre) -> Genre:
+        existing_genre = self.genre_repository.get_by_id(genre_id)
 
-        if not genre:
+        if not existing_genre:
             raise GenreNotFoundException("Genre not found")
 
-        genre.name = updated_genre.name
+        existing_genre.name = updated_genre.name
 
-        return self.genre_repository.update(genre)
+        return self.genre_repository.update(existing_genre)
 
     def delete(self, genre_id: int) -> Genre:
-        genre = self.genre_repository.get_by_id(genre_id)
+        existing_genre = self.genre_repository.get_by_id(genre_id)
 
-        if not genre:
+        if not existing_genre:
             raise GenreNotFoundException("Genre not found")
 
         self.genre_repository.delete(genre_id)
 
-        return genre
+        return existing_genre
 
-    def add_movie(
-        self,
-        genre_id: int,
-        movie_id: int,
-    ) -> Genre:
-        genre = self.genre_repository.get_by_id(genre_id)
+    def add_movie(self, genre_id: int, movie_id: int) -> Genre:
+        existing_genre = self.genre_repository.get_by_id(genre_id)
 
-        if not genre:
+        if not existing_genre:
             raise GenreNotFoundException("Genre not found")
 
-        movie = self.movie_repository.get_by_id(movie_id)
+        existing_movie = self.movie_repository.get_by_id(movie_id)
 
-        if not movie:
+        if not existing_movie:
             raise MovieNotFoundException("Movie not found")
 
-        if movie in genre.movies:
+        if existing_movie in existing_genre.movies:
             raise GenreAlreadyAssociatedException(
                 "Movie already associated with this genre"
             )
 
-        genre.movies.append(movie)
+        existing_genre.movies.append(existing_movie)
 
-        return self.genre_repository.update(genre)
+        return self.genre_repository.update(existing_genre)
 
     def get_movies(self, genre_id: int) -> list[Movie]:
-        genre = self.genre_repository.get_by_id(genre_id)
+        existing_genre = self.genre_repository.get_by_id(genre_id)
 
-        if not genre:
+        if not existing_genre:
             raise GenreNotFoundException("Genre not found")
 
-        return genre.movies
+        return existing_genre.movies

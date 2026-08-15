@@ -7,3 +7,7 @@ class ActorNotFoundException(Exception):
 
 class ActorAlreadyAssociatedException(Exception):
     pass
+
+
+class MovieAlreadyAssociatedException(Exception):
+    pass
