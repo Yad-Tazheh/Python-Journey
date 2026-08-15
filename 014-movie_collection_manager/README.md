@@ -1,8 +1,8 @@
 # Movie Collection Manager
 
-A backend API for managing a personal movie collection.
+A backend REST API for managing a personal movie collection.
 
-The project is built with **FastAPI**, **Pydantic**, **SQLAlchemy**, and **Pytest**, following a layered architecture that separates API handling, validation, business logic, database operations, and persistence models.
+The project is built with **FastAPI**, **Pydantic**, **SQLAlchemy**, **Alembic**, **SQLite**, and **Pytest**. It follows a layered architecture that separates HTTP handling, validation, business logic, database operations, and persistence models.
 
 ---
 
@@ -11,22 +11,24 @@ The project is built with **FastAPI**, **Pydantic**, **SQLAlchemy**, and **Pytes
 * **FastAPI** — REST API framework
 * **Pydantic** — request/response validation
 * **SQLAlchemy** — ORM and database interaction
+* **Alembic** — database schema migrations
+* **SQLite** — development and test database
 * **Pytest** — automated testing
-* **SQLite** — development database
+* **python-dotenv** — environment configuration
 * **Git** — version control
 
 ---
 
-## Architecture
+# Architecture
 
 The application follows a layered architecture:
 
 ```text
 Client
   ↓
-Router (FastAPI)
+Router
   ↓
-Schema (Pydantic)
+Schema
   ↓
 Service
   ↓
@@ -39,30 +41,27 @@ Database
 
 Each layer has a specific responsibility.
 
-### Router
+## Router
 
-The Router is responsible for handling HTTP requests and responses.
+Routers handle HTTP requests and responses.
 
-For example:
+Examples:
 
 ```text
-POST /movies/
-GET /movies/1
-PUT /movies/1
-DELETE /movies/1
+GET    /movies/
+POST   /movies/
+GET    /movies/{movie_id}
+PUT    /movies/{movie_id}
+DELETE /movies/{movie_id}
 ```
 
-The Router should not contain business logic or database queries.
-
-Its main responsibility is to receive the request and pass it to the appropriate service.
+Routers should remain thin and should not contain business rules or raw database queries.
 
 ---
 
-### Schema
+## Schema
 
-Pydantic schemas are the **guard dog of the API input**.
-
-They validate whether the request has the correct structure and data types.
+Pydantic schemas validate API input and define API responses.
 
 For example:
 
@@ -73,31 +72,21 @@ class MovieCreate(BaseModel):
     release_date: str
 ```
 
-The schema can determine that:
+Schemas answer:
 
-```json
-{
-  "title": 123
-}
-```
+> Is the incoming data structurally valid?
 
-is invalid because `title` is expected to be a string.
+They do not decide whether a movie already exists or whether a relationship is allowed.
 
-However, the schema does **not** know whether the movie already exists in the database.
-
-That is the responsibility of the Service layer.
+That responsibility belongs to the Service layer.
 
 ---
 
-### Service
+## Service
 
-The Service layer contains the application's **business logic**.
+The Service layer contains business logic.
 
-The Service answers questions such as:
-
-> Is this request allowed according to the rules of the application?
-
-For example, a movie with a duplicate title should not be created.
+For example:
 
 ```python
 existing_movie = self.movie_repository.get_by_title(movie.title)
@@ -106,44 +95,37 @@ if existing_movie:
     raise MovieAlreadyExistsException("Movie already exists")
 ```
 
-The Service layer is responsible for:
+Services are responsible for:
 
-1. Business rules
-2. Duplicate checks
-3. Entity existence validation
-4. Domain-related decisions
-5. Application exceptions
+* Business rules
+* Duplicate checks
+* Entity existence validation
+* Relationship validation
+* Application-specific exceptions
 
-In other words:
+In simple terms:
 
 ```text
 Schema:
-"Is this request structurally healthy?"
+"Is the request structurally valid?"
 
 Service:
-"Is this request allowed by the application's rules?"
+"Is the request allowed?"
+
+Repository:
+"How do I access the database?"
 ```
 
 ---
 
-### Repository
+## Repository
 
-The Repository layer handles database operations.
+Repositories contain database operations.
 
-The Service layer should **not need to know how SQLAlchemy works**.
-
-For example, the Service can simply call:
+For example:
 
 ```python
-movie_repository.get_by_title("Inception")
-```
-
-without knowing how the database query is implemented.
-
-The Repository translates that operation into SQLAlchemy:
-
-```python
-def get_by_title(self, title: str) -> Movie | None:
+def get_by_title(self, title: str):
     return (
         self.db
         .query(Movie)
@@ -152,27 +134,21 @@ def get_by_title(self, title: str) -> Movie | None:
     )
 ```
 
-This separation gives us:
+The Service does not need to know how SQLAlchemy queries are implemented.
 
-```text
-Service
-    ↓
-get_by_title("Inception")
-    ↓
-Repository
-    ↓
-SQLAlchemy query
-    ↓
-Database
+It can simply call:
+
+```python
+movie_repository.get_by_title("Inception")
 ```
 
-The Service therefore does not depend directly on SQLAlchemy implementation details.
+This keeps database implementation details isolated from business logic.
 
 ---
 
-## Domain Models
+# Domain Models
 
-The project currently contains the following main entities:
+The application currently contains five main entities:
 
 ```text
 Movie
@@ -182,104 +158,68 @@ User
 Review
 ```
 
-### Movie
+## Movie
 
-A movie contains information such as:
+A movie contains:
 
-* movie ID
-* title
-* description
-* release date
+* Movie ID
+* Title
+* Description
+* Release date
 
-A movie can have multiple:
+A movie can have multiple actors, genres, and reviews.
 
-* Actors
-* Genres
-* Reviews
-
----
-
-### Actor
+## Actor
 
 An actor can participate in multiple movies.
-
-This creates a **many-to-many relationship** between Movie and Actor.
 
 ```text
 Movie ←→ Actor
 ```
 
----
+This is implemented as a many-to-many relationship.
 
-### Genre
+## Genre
 
-A movie can belong to multiple genres, and a genre can contain multiple movies.
-
-Therefore:
+A movie can have multiple genres, and a genre can contain multiple movies.
 
 ```text
 Movie ←→ Genre
 ```
 
-is also a **many-to-many relationship**.
+This is also a many-to-many relationship.
 
----
+## User
 
-### Review
-
-A review belongs to:
-
-* one User
-* one Movie
-
-Therefore the relationships are:
+A user can create multiple reviews.
 
 ```text
 User 1 ──────── * Review
-Movie 1 ─────── * Review
+```
+
+## Review
+
+Each review belongs to one user and one movie.
+
+```text
+User
+  │
+  └────── * Reviews
+              │
+              │
+              ▼
+            Movie
 ```
 
 ---
 
 # Database Relationships
 
-## Movie ↔ Genre
-
-The Movie and Genre relationship is many-to-many.
-
-Instead of storing multiple genre IDs directly inside the Movie table, an association table is used.
-
-```text
-movies
-   │
-   │
-   └──── movie_genres ──── genres
-```
-
-The association table contains two foreign keys:
-
-```text
-movie_genres
-
-movie_id
-genre_id
-```
-
-Conceptually:
-
-```text
-Movie #1 ─── Genre #2
-Movie #1 ─── Genre #4
-Movie #3 ─── Genre #2
-```
-
----
-
 ## Movie ↔ Actor
 
-Movie and Actor also have a many-to-many relationship.
+Movie and Actor have a many-to-many relationship.
 
-An association table is used:
+The relationship is represented through:
 
 ```text
 movie_actors
@@ -300,7 +240,34 @@ Movie #1 ─── Actor #7
 Movie #2 ─── Actor #3
 ```
 
-SQLAlchemy manages these relationships through:
+---
+
+## Movie ↔ Genre
+
+Movie and Genre also have a many-to-many relationship.
+
+The association table is:
+
+```text
+movie_genres
+```
+
+with:
+
+```text
+movie_id
+genre_id
+```
+
+Conceptually:
+
+```text
+Movie #1 ─── Genre #2
+Movie #1 ─── Genre #4
+Movie #3 ─── Genre #2
+```
+
+SQLAlchemy manages these relationships through relationship definitions such as:
 
 ```python
 actors = relationship(
@@ -318,7 +285,7 @@ genres = relationship(
 )
 ```
 
-This allows relationship operations such as:
+This allows operations such as:
 
 ```python
 movie.actors.append(actor)
@@ -329,331 +296,317 @@ without manually inserting rows into the association tables.
 
 ---
 
-# Development Process
+# Database Migrations
 
-From now on, we will be engineering this project in a more structured way.
+The project uses **Alembic** to manage database schema migrations.
 
-Instead of building everything at once, we will proceed **step by step**, and each important feature will be accompanied by tests.
+Instead of deleting and recreating the database whenever a model changes, Alembic tracks changes to the database schema through migration files.
 
-Our goal is to build the application incrementally while keeping the architecture clean and making sure every layer behaves correctly.
+The general workflow is:
+
+```text
+SQLAlchemy Models
+       ↓
+Alembic
+       ↓
+Migration
+       ↓
+Database Schema
+```
+
+## Create a Migration
+
+After changing a SQLAlchemy model:
+
+```bash
+alembic revision --autogenerate -m "describe the change"
+```
+
+## Apply Migrations
+
+```bash
+alembic upgrade head
+```
+
+## Check Current Migration
+
+```bash
+alembic current
+```
+
+## View Migration History
+
+```bash
+alembic history
+```
+
+Alembic allows the database schema to evolve together with the application while keeping schema changes version-controlled.
 
 ---
 
-## 1. Testing Framework
+# API Endpoints
 
-We created a testing framework for the Movie Collection Manager project using **Pytest**.
+The API is organized around the main domain entities.
 
-The goal is to test each model and API feature independently and verify the behavior of the application as development progresses.
-
-The testing structure is organized around API tests such as:
+## Movies
 
 ```text
-tests/
-└── api_tests/
-    ├── test_movie.py
-    ├── test_actor.py
-    ├── test_genre.py
-    ├── test_review.py
-    └── test_user.py
+GET    /movies/
+POST   /movies/
+GET    /movies/{movie_id}
+PUT    /movies/{movie_id}
+DELETE /movies/{movie_id}
+
+GET    /movies/title/{title}
+
+POST   /movies/{movie_id}/actors/{actor_id}
+GET    /movies/{movie_id}/actors
+
+POST   /movies/{movie_id}/genres/{genre_id}
+GET    /movies/{movie_id}/genres
 ```
 
-A shared `conftest.py` provides common testing fixtures such as the test client and test database session.
-
----
-
-## 1.1 Genre Model Foundation
-
-We initially created a basic `genre.py` model **without relationships**.
-
-The reason was to make sure:
-
-```python
-Base.metadata.create_all()
-```
-
-could create the database schema correctly before introducing more complicated relationships.
-
-The relationship was intentionally added later.
-
-This incremental approach made it easier to identify database and model problems.
-
----
-
-## 1.2 Movie Model Foundation
-
-We followed the same approach with `movie.py`.
-
-First, we created the basic Movie model without relationships.
-
-Once the basic model and database creation were working correctly, we introduced relationships incrementally.
-
----
-
-## 1.3 Movie ↔ Genre Relationship
-
-After the basic Movie and Genre models were working, we introduced their relationship.
-
-The relationship is:
+## Actors
 
 ```text
-Movie ←→ Genre
+GET    /actors/
+POST   /actors/
+GET    /actors/{actor_id}
+PUT    /actors/{actor_id}
+DELETE /actors/{actor_id}
+
+GET    /actors/name/{name}
+
+POST   /actors/{actor_id}/movies/{movie_id}
+GET    /actors/{actor_id}/movies
 ```
 
-and is implemented as a **many-to-many relationship**.
-
----
-
-## 1.3.1 Movie-Genre Association Table
-
-We created an association table:
+## Genres
 
 ```text
-movie_genres
+GET    /genres/
+POST   /genres/
+GET    /genres/{genre_id}
+PUT    /genres/{genre_id}
+DELETE /genres/{genre_id}
+
+GET    /genres/name/{name}
+
+POST   /genres/{genre_id}/movies/{movie_id}
+GET    /genres/{genre_id}/movies
 ```
 
-to establish the many-to-many relationship.
-
-The table contains two foreign keys:
+## Users
 
 ```text
-movie_id → movies.movie_id
-genre_id → genres.genre_id
+GET    /users/
+POST   /users/
+GET    /users/{user_id}
+PUT    /users/{user_id}
+DELETE /users/{user_id}
 ```
 
-Conceptually:
+## Reviews
 
 ```text
-movies
-   │
-   │ movie_id
-   ▼
-movie_genres
-   ▲
-   │ genre_id
-   │
-genres
-```
+GET    /reviews/
+POST   /reviews/
+GET    /reviews/{review_id}
+PUT    /reviews/{review_id}
+DELETE /reviews/{review_id}
 
-This allows one Movie to have many Genres and one Genre to belong to many Movies.
-
----
-
-## 1.4 Movie ↔ Actor Relationship
-
-We then created `actor.py` and established the relationship between Movies and Actors.
-
-The relationship is also:
-
-```text
-Movie ←→ Actor
-```
-
-and is implemented as many-to-many.
-
----
-
-## 1.4.1 Movie-Actor Association Table
-
-We created:
-
-```text
-movie_actors
-```
-
-with two foreign keys:
-
-```text
-movie_id → movies.movie_id
-actor_id → actors.actor_id
-```
-
-This association table represents which actors participate in which movies.
-
----
-
-## 1.4.2 Review Relationships
-
-We defined the relationships between Review, User, and Movie.
-
-A Review belongs to one User and one Movie:
-
-```text
-User
-  │
-  └─────── * Reviews
-                │
-                │
-                ▼
-              Movie
-```
-
-This means a user can create multiple reviews, while each review is associated with one movie.
-
----
-
-# 1.5 Movie Repository
-
-After establishing the initial models, we created the Movie Repository.
-
-The repository is responsible for database operations such as:
-
-```python
-get_all()
-get_by_id()
-get_by_title()
-create()
-update()
-delete()
-```
-
-The repository hides SQLAlchemy implementation details from the Service layer.
-
-For example:
-
-```python
-movie_repository.get_by_title("Inception")
-```
-
-is enough for the Service.
-
-The Service does not need to know that the Repository internally uses:
-
-```python
-session.query(Movie)
-```
-
-This separation makes the application easier to maintain and test.
-
----
-
-# 1.6 Movie Service
-
-After creating the Movie Repository, we created the Movie Service.
-
-The Service sits between the Router and Repository:
-
-```text
-Router
-   ↓
-MovieService
-   ↓
-MovieRepository
-```
-
-The Service is responsible for business rules.
-
-For example, when creating a movie:
-
-```text
-Client
-   ↓
-MovieCreate
-   ↓
-MovieService
-   ↓
-Does movie already exist?
-   ↓
-YES → MovieAlreadyExistsException
-   ↓
-NO
-   ↓
-MovieRepository.create()
-```
-
-This keeps business logic out of the Router and database logic out of the Service.
-
----
-
-# Relationship API Development
-
-After the basic CRUD operations and tests were completed, we started exposing relationships through API endpoints.
-
-For example:
-
-### Add Actor to Movie
-
-```http
-POST /movies/{movie_id}/actors/{actor_id}
-```
-
-### Get Movie Actors
-
-```http
-GET /movies/{movie_id}/actors
-```
-
-### Add Genre to Movie
-
-```http
-POST /movies/{movie_id}/genres/{genre_id}
-```
-
-### Get Movie Genres
-
-```http
-GET /movies/{movie_id}/genres
-```
-
-These endpoints use the same layered architecture:
-
-```text
-Router
-   ↓
-MovieService
-   ↓
-MovieRepository
-ActorRepository
-GenreRepository
-   ↓
-SQLAlchemy relationships
-   ↓
-Association tables
+GET    /reviews/user/{user_id}
+GET    /reviews/movie/{movie_id}
 ```
 
 ---
 
 # Error Handling
 
-The application uses custom exceptions instead of returning generic errors from the Service layer.
+The application uses custom exceptions for expected application errors.
+
+Examples:
+
+```text
+MovieNotFoundException
+MovieAlreadyExistsException
+MovieAlreadyAssociatedException
+
+ActorNotFoundException
+ActorAlreadyExistsException
+ActorAlreadyAssociatedException
+
+GenreNotFoundException
+GenreAlreadyExistsException
+GenreAlreadyAssociatedException
+
+UserNotFoundException
+UserAlreadyExistsException
+
+ReviewNotFoundException
+```
+
+These exceptions are handled by FastAPI exception handlers.
+
+Typical responses include:
+
+```text
+404 Not Found
+```
+
+when an entity does not exist, and:
+
+```text
+409 Conflict
+```
+
+when an entity or relationship already exists.
+
+For example:
+
+```json
+{
+    "detail": "Movie already exists"
+}
+```
+
+This keeps API error responses consistent and predictable.
+
+---
+
+# Dependency Injection
+
+FastAPI dependency injection is used to construct database sessions, repositories, and services.
+
+The dependency flow is:
+
+```text
+Request
+  ↓
+FastAPI Dependency
+  ↓
+Database Session
+  ↓
+Repository
+  ↓
+Service
+  ↓
+Router
+```
+
+For example, the Movie Service receives:
+
+```text
+MovieRepository
+ActorRepository
+GenreRepository
+```
+
+This allows the Router to depend on the Service instead of directly creating repositories or database sessions.
+
+It also makes the application easier to test because dependencies can be overridden in tests.
+
+---
+
+# Testing
+
+The project uses **Pytest** for automated testing.
+
+Tests are organized by responsibility:
+
+```text
+tests/
+├── api_tests/
+├── schema_tests/
+└── service_tests/
+```
+
+### API Tests
+
+API tests verify HTTP behavior, status codes, request validation, responses, and endpoint behavior.
+
+### Schema Tests
+
+Schema tests verify Pydantic validation and serialization.
+
+### Service Tests
+
+Service tests verify business logic independently from the HTTP layer.
 
 Examples include:
 
 ```text
-MovieNotFoundException
-ActorNotFoundException
-GenreNotFoundException
-UserNotFoundException
-ReviewNotFoundException
+Create movie
+Duplicate movie
+Get movie
+Update movie
+Delete movie
+
+Create actor
+Associate actor with movie
+Duplicate actor relationship
+
+Create genre
+Associate genre with movie
+Duplicate genre relationship
+
+Create user
+Duplicate user
+Update user
+Delete user
+
+Create review
+Get reviews by user
+Get reviews by movie
+Update review
+Delete review
 ```
 
-Relationship-specific errors are also handled.
+The tests use fixtures for database sessions, services, models, and API clients.
 
-For example:
+The test database is isolated from the development database.
+
+---
+
+# Development Process
+
+The project has been developed incrementally.
+
+The main progression was:
 
 ```text
-ActorAlreadyAssociatedException
-GenreAlreadyAssociatedException
+Models
+  ↓
+Database
+  ↓
+Repositories
+  ↓
+Services
+  ↓
+Routers
+  ↓
+Schemas
+  ↓
+Exception Handling
+  ↓
+Relationships
+  ↓
+API Tests
+  ↓
+Service Tests
+  ↓
+Schema Tests
+  ↓
+Alembic Migrations
 ```
 
-A duplicate relationship results in:
-
-```http
-409 Conflict
-```
-
-while a missing entity results in:
-
-```http
-404 Not Found
-```
-
-This makes the API behavior predictable and meaningful.
+This approach makes it easier to identify problems close to where they are introduced.
 
 ---
 
 # Testing Philosophy
 
-Tests are written while features are being developed rather than waiting until the entire project is finished.
+Important features are tested as they are implemented.
 
 For example, when implementing Movie ↔ Actor:
 
@@ -662,7 +615,7 @@ Create Movie
       ↓
 Create Actor
       ↓
-Add Actor to Movie
+Associate Actor with Movie
       ↓
 Verify relationship
       ↓
@@ -673,61 +626,189 @@ Test missing Actor
 Test duplicate relationship
 ```
 
-This approach helps us catch problems close to where they are introduced.
+Tests therefore serve two purposes:
 
-The tests also document the expected behavior of the API.
+1. Detect regressions.
+2. Document expected application behavior.
 
 ---
 
 # Engineering Principles
 
-The project follows several important principles:
+## Separation of Concerns
 
-### Separation of concerns
-
-Each layer has one primary responsibility.
+Each layer has a clear responsibility:
 
 ```text
-Schema     → API data validation
-Router     → HTTP handling
-Service    → Business logic
-Repository → Database operations
-Model      → Database structure and relationships
+Schema
+  → API validation
+
+Router
+  → HTTP handling
+
+Service
+  → Business logic
+
+Repository
+  → Database operations
+
+Model
+  → Database structure and relationships
 ```
 
-### Thin Routers
+## Thin Routers
 
-Routers should not contain business rules or raw database queries.
+Routers should not contain business rules or raw SQLAlchemy queries.
 
-### Business logic in Services
+## Business Logic in Services
 
-Rules such as duplicate checks and entity existence validation belong in the Service layer.
+Rules such as duplicate checks, existence checks, and relationship validation belong in Services.
 
-### Database logic in Repositories
+## Database Logic in Repositories
 
-SQLAlchemy queries should remain inside Repositories.
+SQLAlchemy queries belong in Repositories.
 
-### Incremental development
+## Dependency Injection
 
-Models and relationships are introduced gradually instead of building the entire database structure at once.
+Dependencies are constructed through FastAPI's dependency system rather than manually inside every endpoint.
 
-### Test-driven verification
+## Database Migrations
 
-Each important feature is verified with Pytest tests.
+Schema changes are managed through Alembic instead of manually recreating the database.
+
+## Incremental Development
+
+Features and relationships are introduced step by step.
+
+## Automated Testing
+
+Important application behavior is verified with Pytest.
+
+---
+
+# Running the Project
+
+## Install Dependencies
+
+Create and activate a virtual environment:
+
+```bash
+python -m venv .venv
+```
+
+Linux/macOS:
+
+```bash
+source .venv/bin/activate
+```
+
+Windows:
+
+```powershell
+.venv\Scripts\activate
+```
+
+Install the project dependencies:
+
+```bash
+pip install -r requirements.txt
+```
+
+---
+
+## Run Database Migrations
+
+Before starting the application:
+
+```bash
+alembic upgrade head
+```
+
+---
+
+## Start the API
+
+Run the development server with:
+
+```bash
+uvicorn main:app --reload
+```
+
+The API will be available at:
+
+```text
+http://127.0.0.1:8000
+```
+
+FastAPI's interactive documentation is available at:
+
+```text
+http://127.0.0.1:8000/docs
+```
+
+---
+
+# Running Tests
+
+Run the complete test suite:
+
+```bash
+python -m pytest -q
+```
+
+Run only API tests:
+
+```bash
+python -m pytest tests/api_tests -q
+```
+
+Run only schema tests:
+
+```bash
+python -m pytest tests/schema_tests -q
+```
+
+Run only service tests:
+
+```bash
+python -m pytest tests/service_tests -q
+```
+
+The test environment uses a separate configuration/database so tests do not modify the development database.
 
 ---
 
 # Project Goal
 
-The long-term goal is to turn the Movie Collection Manager into a clean, maintainable backend application with:
+The long-term goal is to build a clean and maintainable backend application with:
 
 * Well-defined domain models
 * RESTful APIs
-* Clear relationships between entities
+* Clear entity relationships
 * Layered architecture
+* Dependency injection
+* Repository pattern
+* Service-layer business logic
 * Custom exception handling
+* Alembic database migrations
 * Automated tests
 * Clean database access
-* Maintainable business logic
+* Maintainable code structure
 
-The project is being developed incrementally, with each new feature designed, implemented, tested, and verified before moving to the next stage.
+The project is developed incrementally:
+
+```text
+Design
+  ↓
+Implement
+  ↓
+Test
+  ↓
+Refactor
+  ↓
+Verify
+  ↓
+Next Feature
+```
+
+The focus is not only on making the API work, but on understanding **why the application is structured this way** and how each architectural decision improves maintainability, testing, and future development.
