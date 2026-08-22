@@ -1,4 +1,3 @@
-:::writing{variant="document" id="73921" title="README.md"}
 # 🎬 Movie Collection Manager
 
 A clean and maintainable **REST API backend** for managing a personal movie collection.
