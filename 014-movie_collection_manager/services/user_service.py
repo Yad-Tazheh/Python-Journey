@@ -6,6 +6,9 @@ from exceptions.user_exceptions import (
 )
 from repositories.user_repository import UserRepository
 
+from utils.password import hash_password
+from schemas.user_schema import UserCreate
+
 
 class UserService:
     def __init__(self, user_repository: UserRepository) -> None:
@@ -30,13 +33,19 @@ class UserService:
 
         return user
 
-    def create(self, user: User) -> User:
-        existing_user = self.user_repository.get_by_username(user.username)
+    def create(self, user_data: UserCreate) -> User:
+        existing_user = self.user_repository.get_by_username(user_data.username)
 
         if existing_user:
             raise UserAlreadyExistsException("User already exists")
 
+        user = User(
+            username=user_data.username,
+            password_hash=hash_password(user_data.password),
+        )
+
         return self.user_repository.create(user)
+
 
     def update(
         self,

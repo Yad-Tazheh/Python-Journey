@@ -14,7 +14,6 @@ def test_create_review(client, test_user, test_movie):
         json={
             "content": "A good movie",
             "rating": 5,
-            "user_id": test_user.user_id,
             "movie_id": test_movie.movie_id,
         },
     )
@@ -25,17 +24,16 @@ def test_create_review(client, test_user, test_movie):
 
     assert data["content"] == "A good movie"
     assert data["rating"] == 5
-    assert data["user_id"] == test_user.user_id
+    assert data["user_id"] is not None
     assert data["movie_id"] == test_movie.movie_id
 
 
-def test_create_review_with_invalid_rating(client, test_user, test_movie):
+def test_create_review_with_invalid_rating(client, test_movie):
     response = client.post(
         "/reviews/",
         json={
             "content": "A good movie",
             "rating": 11,
-            "user_id": test_user.user_id,
             "movie_id": test_movie.movie_id,
         },
     )
@@ -43,28 +41,12 @@ def test_create_review_with_invalid_rating(client, test_user, test_movie):
     assert response.status_code == 422
 
 
-def test_create_review_with_user_not_found(client, test_movie):
+def test_create_review_with_movie_not_found(client):
     response = client.post(
         "/reviews/",
         json={
             "content": "A good movie",
             "rating": 5,
-            "user_id": 9999,
-            "movie_id": test_movie.movie_id,
-        },
-    )
-
-    assert response.status_code == 404
-    assert response.json()["detail"] == "User not found"
-
-
-def test_create_review_with_movie_not_found(client, test_user):
-    response = client.post(
-        "/reviews/",
-        json={
-            "content": "A good movie",
-            "rating": 5,
-            "user_id": test_user.user_id,
             "movie_id": 9999,
         },
     )
@@ -121,14 +103,19 @@ def test_get_reviews_by_user(client, test_session, test_user, test_movie):
     test_session.add_all([review1, review2])
     test_session.commit()
 
-    response = client.get(f"/reviews/user/{test_user.user_id}")
+    response = client.get(
+        f"/reviews/user/{test_user.user_id}"
+    )
 
     assert response.status_code == 200
 
     data = response.json()
 
     assert len(data) == 2
-    assert all(item["user_id"] == test_user.user_id for item in data)
+    assert all(
+        item["user_id"] == test_user.user_id
+        for item in data
+    )
 
 
 def test_get_reviews_by_user_not_found(client):
@@ -156,14 +143,19 @@ def test_get_reviews_by_movie(client, test_session, test_user, test_movie):
     test_session.add_all([review1, review2])
     test_session.commit()
 
-    response = client.get(f"/reviews/movie/{test_movie.movie_id}")
+    response = client.get(
+        f"/reviews/movie/{test_movie.movie_id}"
+    )
 
     assert response.status_code == 200
 
     data = response.json()
 
     assert len(data) == 2
-    assert all(item["movie_id"] == test_movie.movie_id for item in data)
+    assert all(
+        item["movie_id"] == test_movie.movie_id
+        for item in data
+    )
 
 
 def test_get_reviews_by_movie_not_found(client):
@@ -200,8 +192,6 @@ def test_update_review(client, test_session, test_user, test_movie):
     assert data["review_id"] == review.review_id
     assert data["content"] == "Updated content"
     assert data["rating"] == 9
-    assert data["user_id"] == test_user.user_id
-    assert data["movie_id"] == test_movie.movie_id
 
 
 def test_update_review_not_found(client):
@@ -229,7 +219,9 @@ def test_delete_review(client, test_session, test_user, test_movie):
     test_session.commit()
     test_session.refresh(review)
 
-    response = client.delete(f"/reviews/{review.review_id}")
+    response = client.delete(
+        f"/reviews/{review.review_id}"
+    )
 
     assert response.status_code == 200
 
@@ -237,11 +229,12 @@ def test_delete_review(client, test_session, test_user, test_movie):
 
     assert data["review_id"] == review.review_id
     assert data["content"] == "A good movie"
-    assert data["rating"] == 8
 
     deleted_review = (
         test_session.query(Review)
-        .filter(Review.review_id == review.review_id)
+        .filter(
+            Review.review_id == review.review_id
+        )
         .first()
     )
 

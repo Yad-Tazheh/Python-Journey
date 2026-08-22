@@ -1,4 +1,4 @@
-# Movie Collection Manager
+````# Movie Collection Manager
 
 A backend REST API for managing a personal movie collection.
 
@@ -794,6 +794,502 @@ The long-term goal is to build a clean and maintainable backend application with
 * Automated tests
 * Clean database access
 * Maintainable code structure
+# 🎬 Movie Collection Manager
+
+A clean and maintainable **backend REST API** for managing a movie collection.
+
+The project is built with **FastAPI**, **SQLAlchemy**, **Pydantic**, **Alembic**, **JWT Authentication**, and **Pytest**.
+It follows a layered architecture using **Repository Pattern**, **Service Layer**, and **Dependency Injection**.
+
+---
+
+# 🚀 Features
+
+✅ Movie management
+✅ Actor management
+✅ Genre management
+✅ User authentication
+✅ JWT authorization
+✅ OAuth2 Swagger login
+✅ Review system
+✅ Role-based access control
+✅ Database migrations with Alembic
+✅ Automated testing with Pytest
+
+---
+
+# 🛠️ Tech Stack
+
+| Technology          | Purpose                |
+| ------------------- | ---------------------- |
+| FastAPI             | REST API framework     |
+| SQLAlchemy          | ORM and database layer |
+| Pydantic            | Data validation        |
+| Alembic             | Database migrations    |
+| PostgreSQL / SQLite | Database               |
+| Pytest              | Testing                |
+| JWT                 | Authentication         |
+| OAuth2              | Swagger authentication |
+
+---
+
+# 🏗️ Architecture
+
+The application follows a layered architecture:
+
+```text
+Client
+  ↓
+Router
+  ↓
+Schema
+  ↓
+Service
+  ↓
+Repository
+  ↓
+Model
+  ↓
+Database
+```
+
+## Layer Responsibilities
+
+### Router
+
+Handles:
+
+* HTTP requests
+* Responses
+* Dependency injection
+
+Routers stay thin and contain no business logic.
+
+---
+
+### Schema
+
+Responsible for:
+
+* Request validation
+* Response formatting
+* Data serialization
+
+Example:
+
+```python
+class MovieCreate(BaseModel):
+    title: str
+    description: str
+    release_date: str
+```
+
+---
+
+### Service
+
+Contains application business rules:
+
+* Duplicate checking
+* Entity validation
+* Relationship validation
+* Permission logic
+
+Example:
+
+```text
+Is the movie allowed to be created?
+Does the user exist?
+Is this relationship already created?
+```
+
+---
+
+### Repository
+
+Responsible for database operations:
+
+```text
+Create
+Read
+Update
+Delete
+Query
+```
+
+The service layer does not directly interact with SQLAlchemy.
+
+---
+
+# 🔐 Authentication & Authorization
+
+The project uses JWT authentication with OAuth2 support.
+
+## Authentication Flow
+
+```text
+Username + Password
+        ↓
+      Login
+        ↓
+   Access Token
+        ↓
+Authorization Header
+        ↓
+Protected Endpoint
+```
+
+Swagger authentication:
+
+```text
+/docs
+    ↓
+Authorize
+    ↓
+Bearer Token
+```
+
+---
+
+# 👤 User Roles
+
+Available roles:
+
+```text
+USER
+ADMIN
+```
+
+## ADMIN Permissions
+
+Admins can:
+
+* Manage movies
+* Manage actors
+* Manage genres
+* Delete users
+
+---
+
+## Owner/Admin Permissions
+
+Reviews support ownership control:
+
+```text
+User
+ ↓
+Own Review
+```
+
+A user can:
+
+* Update own review
+* Delete own review
+
+Admin can manage all reviews.
+
+---
+
+# 🎭 Domain Models
+
+Main entities:
+
+```text
+Movie
+Actor
+Genre
+User
+Review
+```
+
+---
+
+# 🔗 Relationships
+
+## Movie ↔ Actor
+
+Many-to-many:
+
+```text
+Movie
+  ↕
+Actor
+```
+
+---
+
+## Movie ↔ Genre
+
+Many-to-many:
+
+```text
+Movie
+  ↕
+Genre
+```
+
+---
+
+## User ↔ Review
+
+One-to-many:
+
+```text
+User
+ |
+ |---- Review
+ |
+ |---- Review
+```
+
+---
+
+## Movie ↔ Review
+
+One-to-many:
+
+```text
+Movie
+ |
+ |---- Review
+ |
+ |---- Review
+```
+
+---
+
+# 🗄️ Database Migration
+
+Alembic manages database schema changes.
+
+Create migration:
+
+```bash
+alembic revision --autogenerate -m "change description"
+```
+
+Apply migration:
+
+```bash
+alembic upgrade head
+```
+
+Check migration:
+
+```bash
+alembic current
+```
+
+History:
+
+```bash
+alembic history
+```
+
+---
+
+# 🌐 API Endpoints
+
+## Authentication
+
+```text
+POST /auth/register
+POST /auth/login
+GET  /auth/me
+```
+
+---
+
+## Movies
+
+```text
+GET    /movies/
+POST   /movies/
+GET    /movies/{movie_id}
+PUT    /movies/{movie_id}
+DELETE /movies/{movie_id}
+```
+
+---
+
+## Actors
+
+```text
+GET    /actors/
+POST   /actors/
+GET    /actors/{actor_id}
+PUT    /actors/{actor_id}
+DELETE /actors/{actor_id}
+```
+
+---
+
+## Genres
+
+```text
+GET    /genres/
+POST   /genres/
+GET    /genres/{genre_id}
+PUT    /genres/{genre_id}
+DELETE /genres/{genre_id}
+```
+
+---
+
+## Reviews
+
+```text
+GET    /reviews/
+POST   /reviews/
+GET    /reviews/{review_id}
+PUT    /reviews/{review_id}
+DELETE /reviews/{review_id}
+```
+
+---
+
+# ⚠️ Error Handling
+
+Custom exceptions are used for predictable API responses.
+
+Examples:
+
+```text
+MovieNotFoundException
+MovieAlreadyExistsException
+
+ActorNotFoundException
+ActorAlreadyExistsException
+
+GenreNotFoundException
+GenreAlreadyExistsException
+
+UserNotFoundException
+UserAlreadyExistsException
+
+ReviewNotFoundException
+InvalidCredentialsException
+```
+
+HTTP responses:
+
+```text
+401 Unauthorized
+403 Forbidden
+404 Not Found
+409 Conflict
+```
+
+---
+
+# 🧪 Testing
+
+Testing structure:
+
+```text
+tests/
+│
+├── api_tests/
+├── schema_tests/
+└── service_tests/
+```
+
+Run all tests:
+
+```bash
+pytest -q
+```
+
+Test coverage includes:
+
+* Authentication
+* Authorization
+* CRUD operations
+* Validation
+* Relationships
+* Exception handling
+
+---
+
+# 📦 Running the Project
+
+## Install dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+---
+
+## Run migrations
+
+```bash
+alembic upgrade head
+```
+
+---
+
+## Start server
+
+```bash
+uvicorn main:app --reload
+```
+
+---
+
+## Swagger Documentation
+
+Open:
+
+```text
+http://127.0.0.1:8000/docs
+```
+
+---
+
+# 🧠 Engineering Principles
+
+The project follows:
+
+✅ Separation of Concerns
+✅ Thin Routers
+✅ Service Layer Pattern
+✅ Repository Pattern
+✅ Dependency Injection
+✅ Clean Database Access
+✅ Automated Testing
+✅ Version Controlled Migrations
+
+---
+
+# 🎯 Project Goal
+
+The goal is to build a production-style backend application with:
+
+* Clean architecture
+* Secure authentication
+* Maintainable code structure
+* Proper database design
+* Tested business logic
+* Scalable API development
+
+Development approach:
+
+```text
+Design
+ ↓
+Implement
+ ↓
+Test
+ ↓
+Refactor
+ ↓
+Improve
+ ↓
+Next Feature
+```
+
+---
 
 The project is developed incrementally:
 
@@ -812,3 +1308,4 @@ Next Feature
 ```
 
 The focus is not only on making the API work, but on understanding **why the application is structured this way** and how each architectural decision improves maintainability, testing, and future development.
+````

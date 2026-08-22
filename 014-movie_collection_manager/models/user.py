@@ -1,7 +1,15 @@
-from database.database import Base
+from enum import Enum
 
-from sqlalchemy.orm import relationship, Mapped, mapped_column
+from database.database import Base
+from sqlalchemy import Enum as SQLEnum
 from sqlalchemy import Integer, String
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+
+class UserRole(str, Enum):
+    USER = "USER"
+    ADMIN = "ADMIN"
+
 
 class User(Base):
     __tablename__ = "users"
@@ -12,12 +20,24 @@ class User(Base):
     )
 
     username: Mapped[str] = mapped_column(
-        String,
+        String(50),
         nullable=False,
         unique=True,
+        index=True,
     )
 
-    # a reviews belong to "a" user not reviews belong to users
+    password_hash: Mapped[str] = mapped_column(
+        String(255),
+        nullable=False,
+    )
+
+    role: Mapped[UserRole] = mapped_column(
+        SQLEnum(UserRole),
+        nullable=False,
+        default=UserRole.USER,
+        server_default="USER",
+    )
+
     reviews: Mapped[list["Review"]] = relationship(
         back_populates="user",
     )

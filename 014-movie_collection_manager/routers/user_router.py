@@ -28,11 +28,8 @@ def create_user(
     user: UserCreate,
     user_service: UserService = Depends(get_user_service),
 ):
-    new_user = User(
-        username=user.username,
-    )
+    return user_service.create(user)
 
-    return user_service.create(new_user)
 
 
 @router.get("/{user_id}", response_model=UserResponse)

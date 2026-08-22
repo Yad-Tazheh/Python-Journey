@@ -6,7 +6,6 @@ from schemas.movie_schema import MovieResponse
 class ReviewCreate(BaseModel):
     content: str
     rating: int = Field(ge=1, le=10)
-    user_id: int
     movie_id: int
 
 class ReviewUpdate(BaseModel):

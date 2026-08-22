@@ -1,7 +1,8 @@
 from fastapi import APIRouter, Depends
 
-from dependencies import get_actor_service
+from dependencies import get_actor_service, require_admin
 from models.actor import Actor
+from models.user import  User
 from schemas.actor_schema import (
     ActorCreate,
     ActorResponse,
@@ -29,6 +30,7 @@ def get_all_actors(
 def create_actor(
     actor: ActorCreate,
     actor_service: ActorService = Depends(get_actor_service),
+    _: User = Depends(require_admin),
 ):
     new_actor = Actor(
         name=actor.name,
@@ -53,6 +55,7 @@ def add_movie_to_actor(
     actor_id: int,
     movie_id: int,
     actor_service: ActorService = Depends(get_actor_service),
+    _: User = Depends(require_admin),
 ):
     return actor_service.add_movie(actor_id, movie_id)
 
@@ -81,6 +84,7 @@ def update_actor(
     actor_id: int,
     actor: ActorUpdate,
     actor_service: ActorService = Depends(get_actor_service),
+    _: User = Depends(require_admin),
 ):
     updated_actor = Actor(
         name=actor.name,
@@ -93,5 +97,6 @@ def update_actor(
 def delete_actor(
     actor_id: int,
     actor_service: ActorService = Depends(get_actor_service),
+    _: User = Depends(require_admin),
 ):
     return actor_service.delete(actor_id)

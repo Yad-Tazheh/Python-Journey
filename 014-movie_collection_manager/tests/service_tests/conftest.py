@@ -134,7 +134,10 @@ def client(test_session: Session):
 
 @pytest.fixture
 def test_user(test_session: Session) -> User:
-    user = User(username="Test")
+    user = User(
+        username="Test",
+        password_hash="fake_hash"
+    )
 
     test_session.add(user)
     test_session.commit()

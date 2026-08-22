@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends
 
-from dependencies import get_review_service
+from dependencies import get_review_service, require_owner_or_admin, get_current_user
+from models.user import User
 from models.review import Review
 from schemas.review_schema import (
     ReviewCreate,
@@ -27,17 +28,16 @@ def get_all_reviews(
 def create_review(
     review: ReviewCreate,
     review_service: ReviewService = Depends(get_review_service),
+    current_user: User = Depends(get_current_user),
 ):
     new_review = Review(
         content=review.content,
         rating=review.rating,
-        user_id=review.user_id,
+        user_id=current_user.user_id,
         movie_id=review.movie_id,
     )
 
     return review_service.create(new_review)
-
-
 # Request Body
 #     │
 #     ├── content
@@ -97,6 +97,7 @@ def update_review(
     review_id: int,
     review: ReviewUpdate,
     review_service: ReviewService = Depends(get_review_service),
+    _: User = Depends(require_owner_or_admin),
 ):
     updated_review = Review(
         content=review.content,
@@ -106,9 +107,11 @@ def update_review(
     return review_service.update(review_id, updated_review)
 
 
+
 @router.delete("/{review_id}", response_model=ReviewResponse)
 def delete_review(
     review_id: int,
     review_service: ReviewService = Depends(get_review_service),
+    _: User = Depends(require_owner_or_admin),
 ):
     return review_service.delete(review_id)

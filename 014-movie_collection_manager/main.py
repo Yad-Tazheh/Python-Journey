@@ -39,6 +39,10 @@ from routers.movie_router import router as movie_router
 from routers.review_router import router as review_router
 from routers.user_router import router as user_router
 
+
+from routers.auth_router import router as auth_router
+
+
 # Import models so SQLAlchemy knows all tables and relationships.
 import models.actor
 import models.genre
@@ -119,3 +123,4 @@ app.include_router(actor_router)
 app.include_router(genre_router)
 app.include_router(user_router)
 app.include_router(review_router)
+app.include_router(auth_router)

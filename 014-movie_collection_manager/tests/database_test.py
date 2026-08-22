@@ -85,7 +85,8 @@ def test_movie_actor_relationship(test_session):
 
 def test_user_movie_review_relationship(test_session):
     user = User(
-        username= "Ali"
+        username= "Ali",
+        password_hash="test_hash"
     )
 
     movie = Movie(

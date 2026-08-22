@@ -7,3 +7,6 @@ python-dotenv
 pydantic
 pytest
 httpx
+argon2-cffi
+PyJWT
+python-multipart

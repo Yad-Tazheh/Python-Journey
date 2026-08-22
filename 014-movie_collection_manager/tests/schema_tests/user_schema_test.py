@@ -8,7 +8,8 @@ from schemas.user_schema import UserWithReviewResponse
 
 def test_user_create_success():
     user = UserCreate(
-        username="Ali"
+        username="Ali",
+        password="123456",
     )
 
     assert user.username == "Ali"

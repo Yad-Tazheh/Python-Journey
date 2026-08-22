@@ -1,7 +1,8 @@
 from fastapi import APIRouter, Depends
 
-from dependencies import get_movie_service
+from dependencies import get_movie_service, require_admin
 from models.movie import Movie
+from models.user import User
 from schemas.actor_schema import ActorResponse
 from schemas.genre_schema import GenreResponse
 from schemas.movie_schema import (
@@ -31,6 +32,7 @@ def get_all_movies(
 def create_movie(
     movie: MovieCreate,
     movie_service: MovieService = Depends(get_movie_service),
+    _: User = Depends(require_admin),
 ):
     new_movie = Movie(
         title=movie.title,
@@ -57,6 +59,7 @@ def add_actor_to_movie(
     movie_id: int,
     actor_id: int,
     movie_service: MovieService = Depends(get_movie_service),
+    _: User = Depends(require_admin),
 ):
     return movie_service.add_actor(movie_id, actor_id)
 
@@ -80,6 +83,7 @@ def add_genre_to_movie(
     movie_id: int,
     genre_id: int,
     movie_service: MovieService = Depends(get_movie_service),
+    _: User = Depends(require_admin),
 ):
     return movie_service.add_genre(movie_id, genre_id)
 
@@ -108,6 +112,7 @@ def update_movie(
     movie_id: int,
     movie: MovieUpdate,
     movie_service: MovieService = Depends(get_movie_service),
+    _: User = Depends(require_admin),
 ):
     updated_movie = Movie(
         title=movie.title,
@@ -122,5 +127,6 @@ def update_movie(
 def delete_movie(
     movie_id: int,
     movie_service: MovieService = Depends(get_movie_service),
+    _: User = Depends(require_admin),
 ):
     return movie_service.delete(movie_id)

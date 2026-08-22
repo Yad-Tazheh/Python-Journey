@@ -9,7 +9,7 @@ from models.movie import Movie
 
 
 def create_user(test_session, username="Ali"):
-    user = User(username=username)
+    user = User(username=username, password_hash="test_hash")
 
     test_session.add(user)
     test_session.commit()

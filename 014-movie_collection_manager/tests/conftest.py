@@ -131,16 +131,41 @@ def client(test_session: Session):
 # Common test data
 # ------------------------------------------------------------------
 
-
 @pytest.fixture
-def test_user(test_session: Session) -> User:
-    user = User(username="Test")
+def test_user(test_session):
+    user = User(
+        username="Test",
+        password_hash="$argon2id$v=19$m=65536,t=3,p=4$test$test",
+        role="user",
+    )
 
     test_session.add(user)
     test_session.commit()
     test_session.refresh(user)
 
     return user
+
+@pytest.fixture
+def user_payload():
+    return {
+        "username": "Test",
+        "password": "123456",
+    }
+
+
+@pytest.fixture
+def created_user(client):
+    response = client.post(
+        "/users/",
+        json={
+            "username": "Test",
+            "password": "123456",
+        },
+    )
+
+    assert response.status_code == 200
+
+    return response.json()
 
 
 @pytest.fixture

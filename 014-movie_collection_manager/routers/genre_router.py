@@ -1,7 +1,8 @@
 from fastapi import APIRouter, Depends
 
-from dependencies import get_genre_service
-from models import Genre
+from dependencies import get_genre_service, require_admin
+from models.genre import Genre
+from models.user import User
 from schemas.genre_schema import (
     GenreCreate,
     GenreResponse,
@@ -28,6 +29,7 @@ def get_all_genres(
 def create_genre(
     genre: GenreCreate,
     genre_service: GenreService = Depends(get_genre_service),
+    _: User = Depends(require_admin),
 ):
     new_genre = Genre(
         name=genre.name,
@@ -52,6 +54,7 @@ def add_movie_to_genre(
     genre_id: int,
     movie_id: int,
     genre_service: GenreService = Depends(get_genre_service),
+    _: User = Depends(require_admin),
 ):
     return genre_service.add_movie(genre_id, movie_id)
 
@@ -80,6 +83,7 @@ def update_genre(
     genre_id: int,
     genre: GenreUpdate,
     genre_service: GenreService = Depends(get_genre_service),
+    _: User = Depends(require_admin),
 ):
     updated_genre = Genre(
         name=genre.name,
@@ -92,5 +96,6 @@ def update_genre(
 def delete_genre(
     genre_id: int,
     genre_service: GenreService = Depends(get_genre_service),
+    _: User = Depends(require_admin),
 ):
     return genre_service.delete(genre_id)

@@ -1,5 +1,3 @@
-
-
 def test_get_all_users(client):
     response = client.get("/users/")
 
@@ -7,32 +5,21 @@ def test_get_all_users(client):
     assert isinstance(response.json(), list)
 
 
-def test_create_user(client):
+def test_create_user(client, user_payload):
     response = client.post(
         "/users/",
-        json={
-            "username": "Ali",
-        },
+        json=user_payload,
     )
 
     assert response.status_code == 200
 
     data = response.json()
 
-    assert data["username"] == "Ali"
+    assert data["username"] == "Test"
 
 
-def test_get_user_by_id(client):
-    response = client.post(
-        "/users/",
-        json={
-            "username": "Ali",
-        },
-    )
-
-    assert response.status_code == 200
-
-    user_id = response.json()["user_id"]
+def test_get_user_by_id(client, created_user):
+    user_id = created_user["user_id"]
 
     response = client.get(f"/users/{user_id}")
 
@@ -41,7 +28,7 @@ def test_get_user_by_id(client):
     data = response.json()
 
     assert data["user_id"] == user_id
-    assert data["username"] == "Ali"
+    assert data["username"] == "Test"
 
 
 def test_get_user_by_id_not_found(client):
@@ -51,17 +38,8 @@ def test_get_user_by_id_not_found(client):
     assert response.json()["detail"] == "User not found"
 
 
-def test_update_user(client):
-    response = client.post(
-        "/users/",
-        json={
-            "username": "Ali",
-        },
-    )
-
-    assert response.status_code == 200
-
-    user_id = response.json()["user_id"]
+def test_update_user(client, created_user):
+    user_id = created_user["user_id"]
 
     response = client.put(
         f"/users/{user_id}",
@@ -90,17 +68,8 @@ def test_update_user_not_found(client):
     assert response.json()["detail"] == "User not found"
 
 
-def test_delete_user(client):
-    response = client.post(
-        "/users/",
-        json={
-            "username": "Ali",
-        },
-    )
-
-    assert response.status_code == 200
-
-    user_id = response.json()["user_id"]
+def test_delete_user(client, created_user):
+    user_id = created_user["user_id"]
 
     response = client.delete(f"/users/{user_id}")
 
@@ -109,9 +78,8 @@ def test_delete_user(client):
     data = response.json()
 
     assert data["user_id"] == user_id
-    assert data["username"] == "Ali"
+    assert data["username"] == "Test"
 
-    # Verify deletion
     response = client.get(f"/users/{user_id}")
 
     assert response.status_code == 404
